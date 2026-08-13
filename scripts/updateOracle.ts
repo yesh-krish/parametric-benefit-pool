@@ -7,11 +7,23 @@ const { ethers } = await network.create({
 const CONTRACT_ADDRESS =
   "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
 
-const RAINFALL = 7.5;
+const rainfallInput = process.env.RAINFALL;
+
+if (!rainfallInput) {
+  throw new Error(
+    "Missing RAINFALL environment variable. Example: $env:RAINFALL='7.5'"
+  );
+}
+
+const rainfall = Number(rainfallInput);
+
+if (!Number.isFinite(rainfall) || rainfall < 0) {
+  throw new Error("RAINFALL must be a non-negative number.");
+}
+
+const scaledValue = Math.round(rainfall * 100);
 
 const [, oracle] = await ethers.getSigners();
-
-const scaledValue = Math.round(RAINFALL * 100);
 
 const benefitPool = await ethers.getContractAt(
   "BenefitPool",
@@ -19,11 +31,14 @@ const benefitPool = await ethers.getContractAt(
   oracle
 );
 
-console.log(`Submitting rainfall: ${RAINFALL.toFixed(2)} inches`);
+console.log("");
+console.log("Mock Oracle");
+console.log("-----------");
+console.log(`Submitting rainfall: ${rainfall.toFixed(2)} inches`);
 
 const tx = await benefitPool.updateOracleValue(scaledValue);
 
-console.log("Transaction:", tx.hash);
+console.log(`Transaction: ${tx.hash}`);
 
 await tx.wait();
 
@@ -32,20 +47,13 @@ const threshold = await benefitPool.threshold();
 const triggered = await benefitPool.isTriggered();
 
 console.log("Transaction confirmed");
-
 console.log(
-  "Stored rainfall:",
-  (Number(storedValue) / 100).toFixed(2),
-  "inches"
+  `Stored rainfall: ${(Number(storedValue) / 100).toFixed(2)} inches`
 );
-
 console.log(
-  "Threshold:",
-  (Number(threshold) / 100).toFixed(2),
-  "inches"
+  `Threshold: ${(Number(threshold) / 100).toFixed(2)} inches`
 );
-
 console.log(
-  "Status:",
-  triggered ? "TRIGGERED" : "NOT TRIGGERED"
+  `Status: ${triggered ? "TRIGGERED" : "NOT TRIGGERED"}`
 );
+console.log("");

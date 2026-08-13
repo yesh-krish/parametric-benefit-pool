@@ -8,4 +8,7 @@ export const BENEFIT_POOL_ABI = [
   "function oracleValue() view returns (uint256)",
   "function threshold() view returns (uint256)",
   "function isTriggered() view returns (bool)",
+
+  "event OracleValueUpdated(uint256 value, bool triggered)",
+  "event ContributionRecorded(address indexed contributor, uint256 amount, uint256 newTotal)",
 ];
