@@ -5,10 +5,13 @@ import "./App.css";
 import {
   CONTRACT_ADDRESS,
   BENEFIT_POOL_ABI,
+  NETWORK_NAME,
+  CHAIN_ID,
 } from "./contract";
 
 function App() {
   const [account, setAccount] = useState("");
+  const [lastTxHash, setLastTxHash] = useState("");
 
   const [contribution, setContribution] = useState("100");
   const [poolTotal, setPoolTotal] = useState("0");
@@ -112,6 +115,7 @@ function App() {
       );
 
       const tx = await contract.contribute(amount);
+      setLastTxHash(tx.hash);
 
       setStatus("Transaction submitted. Waiting for confirmation...");
 
@@ -376,10 +380,22 @@ function App() {
                 </div>
 
                 {status && (
+                  
                   <div className="transaction-status">
                     {status}
                   </div>
                 )}
+                {status && <p>{status}</p>}
+
+{lastTxHash && (
+  <div className="tx-detail">
+    <span>Last transaction</span>
+    <code>
+      {lastTxHash.slice(0, 10)}...
+      {lastTxHash.slice(-8)}
+    </code>
+  </div>
+)}
               </article>
 
               <article className="panel">
@@ -462,6 +478,34 @@ function App() {
                 <span>Contract State</span>
               </div>
             </section>
+            <section className="system-panel">
+            <p className="card-label">SYSTEM DETAILS</p>
+
+            <div className="system-grid">
+              <div>
+                <span>Network</span>
+                <strong>{NETWORK_NAME}</strong>
+              </div>
+
+              <div>
+                <span>Chain ID</span>
+                <strong>{CHAIN_ID}</strong>
+              </div>
+
+              <div>
+                <span>Contract</span>
+                <strong>
+                  {CONTRACT_ADDRESS.slice(0, 8)}...
+                  {CONTRACT_ADDRESS.slice(-6)}
+                </strong>
+              </div>
+
+              <div>
+                <span>Assets</span>
+                <strong>Simulated only</strong>
+              </div>
+            </div>
+          </section>
           </>
         )}
       </main>
