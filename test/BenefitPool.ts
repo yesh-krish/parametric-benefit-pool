@@ -4,6 +4,36 @@ import { network } from "hardhat";
 const { ethers } = await network.connect();
 
 describe("BenefitPool", function () {
+    describe("Events and deployment validation", function () {
+  it("emits ContributionRecorded when a contribution is made", async function () {
+    const { benefitPool, alice } = await deployBenefitPool();
+
+    await expect(
+      benefitPool.connect(alice).contribute(100)
+    )
+      .to.emit(benefitPool, "ContributionRecorded")
+      .withArgs(alice.address, 100n, 100n);
+  });
+
+  it("emits OracleValueUpdated with the current trigger state", async function () {
+    const { benefitPool, oracle } = await deployBenefitPool();
+
+    await expect(
+      benefitPool.connect(oracle).updateOracleValue(820)
+    )
+      .to.emit(benefitPool, "OracleValueUpdated")
+      .withArgs(820n, true);
+  });
+
+  it("rejects deployment with the zero address as oracle", async function () {
+    await expect(
+      ethers.deployContract(
+        "BenefitPool",
+        [800, ethers.ZeroAddress]
+      )
+    ).to.be.revertedWith("Invalid oracle");
+  });
+});
   async function deployBenefitPool() {
     const [deployer, oracle, alice, bob] =
       await ethers.getSigners();
