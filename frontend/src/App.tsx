@@ -15,6 +15,11 @@ function App() {
   const [status, setStatus] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // THESE BELONG INSIDE App()
+  const [oracleValue, setOracleValue] = useState("0.00");
+  const [threshold, setThreshold] = useState("0.00");
+  const [triggered, setTriggered] = useState(false);
+
   async function connectWallet() {
     if (!window.ethereum) {
       alert("MetaMask is not installed.");
@@ -49,9 +54,22 @@ function App() {
 
     const total = await contract.totalContributions();
     const personal = await contract.contributions(address);
+    const oracle = await contract.oracleValue();
+    const triggerThreshold = await contract.threshold();
+    const isTriggered = await contract.isTriggered();
 
     setPoolTotal(total.toString());
     setUserContribution(personal.toString());
+
+    setOracleValue(
+      (Number(oracle) / 100).toFixed(2)
+    );
+
+    setThreshold(
+      (Number(triggerThreshold) / 100).toFixed(2)
+    );
+
+    setTriggered(isTriggered);
   }
 
   async function contribute() {
@@ -155,6 +173,38 @@ function App() {
           </div>
 
           {status && <p>{status}</p>}
+
+          <hr />
+
+          <h2>Oracle Status</h2>
+
+          <p>
+            Latest Rainfall: <strong>{oracleValue} inches</strong>
+          </p>
+
+          <p>
+            Trigger Threshold: <strong>{threshold} inches</strong>
+          </p>
+
+          <p>
+            Status:{" "}
+            <strong>
+              {triggered ? "TRIGGERED" : "NOT TRIGGERED"}
+            </strong>
+          </p>
+
+          <button
+            onClick={async () => {
+              if (!window.ethereum || !account) return;
+
+              const provider =
+                new ethers.BrowserProvider(window.ethereum);
+
+              await loadContractData(provider, account);
+            }}
+          >
+            Refresh Oracle Data
+          </button>
         </>
       )}
     </main>
